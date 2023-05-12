@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Navbar } from "react-bootstrap";
+import { Link } from "react-router-dom";
 import Profile from "./Profile/Profile";
 
 const Dashboard = () => {
@@ -66,9 +67,13 @@ const Dashboard = () => {
 
   checkEmailVerificationStatus();
 
+  const logoutHandler = () =>{
+    localStorage.removeItem("idToken");
+  }
+
   return (
     <>
-      <Navbar style={{ marginTop: "1rem" }}>
+      <Navbar style={{ marginTop: "1rem", backgroundColor:"teal" }}>
         <b>Welcome To Expense Tracker</b>
         {!showForm && (
           <p style={{ marginLeft: "55rem", marginTop: "0rem" }}>
@@ -76,6 +81,7 @@ const Dashboard = () => {
             <button onClick={profileCompleteHandler}>Complete Now</button>
           </p>
         )}
+        <Link to="/login"><button onClick={logoutHandler} style={{ marginLeft: "70rem" }}>Logout</button></Link>
       </Navbar>
       <hr />
       {!emailVerified && (
