@@ -1,12 +1,16 @@
-import React, {useState,useRef} from "react";
+import React, { useState, useRef } from "react";
 import classes from "./login.module.css";
+import { useNavigate } from "react-router-dom";
+import Profile from "../Dashboard/Profile/Profile";
 
-const Login = () =>{
-
-    const emailInputRef = useRef();
+const Login = () => {
+  const emailInputRef = useRef();
   const passwordInputRef = useRef();
-
+  const navigate = useNavigate();
   const [error, setError] = useState(null);
+  const [idToken, setIdToken] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [forgotPassword, setForgotPassword] = useState(false);
 
   const submitHandler = async (event) => {
     event.preventDefault();
@@ -30,33 +34,78 @@ const Login = () =>{
           },
         }
       );
-      console.log("user logged in")
+      console.log("user logged in");
+      navigate("/dashboard");
       if (!res.ok) {
         alert("Login Error");
       }
       const data = await res.json();
-      localStorage.setItem("token", data.token);
+      console.log(data.idToken);
+      localStorage.setItem("idToken", data.idToken);
+      setIdToken(data.idToken);
     } catch (error) {
       setError(error.message);
+
       console.log(error);
     }
   };
 
+  const forgotPasswordHandler = async (event) => {
+    event.preventDefault();
+    const email = emailInputRef.current.value;
+    setIsLoading(true);
+
+    try {
+      const res = await fetch(
+        `https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=AIzaSyCp3CtTZKkTpTX35hg6q4KXdL6fJXTDCgk`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            requestType: "PASSWORD_RESET",
+            email: email,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (!res.ok) {
+        throw new Error("Error Sending Password Reset");
+      }
+      alert("Password reset email sent");
+    } catch (error) {
+      setError(error.message);
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <section className={classes.loggedin}>
-       <div>
-       <form onSubmit={submitHandler}>
+    <div>
+      <section className={classes.loggedin}>
+        <div>
+          <form onSubmit={submitHandler}>
             <label htmlFor="email">Enter Your Email</label>
-            <input type="text" ref={emailInputRef}/>
+            <input type="text" ref={emailInputRef} />
             <label htmlFor="password">Enter Your Password</label>
-            <input type="text" ref={passwordInputRef}/>
+            <input type="text" ref={passwordInputRef} />
             {error && <p className={classes.error}>{error}</p>}
-            <div>
-            <button>Login</button>
+            <div className={classes.actions}>
+              <button>Login</button>
+              <p>
+                <button onClick={forgotPasswordHandler}>Forgot Password?</button>{" "}
+               
+              </p>
+              <p>
+                Did Not Have An Account? <button>Sign Up!</button>
+              </p>
             </div>
-        </form>
-       </div>
-    </section>
+          </form>
+        </div>
+      </section>
+      {idToken && <Profile idToken={idToken} />}
+    </div>
   );
 };
 
