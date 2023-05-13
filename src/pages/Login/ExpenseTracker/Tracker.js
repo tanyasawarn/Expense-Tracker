@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import classes from "./expensetracker.module.css";
- 
+import axios from "axios";
 
 
 const ExpenseTracker = () =>{
@@ -13,15 +13,24 @@ const ExpenseTracker = () =>{
 
   useEffect(()=>{
     const fetchData = async () =>{
-      const data = localStorage.getItem("expense");
-      if(data){
-        setExpense(JSON.parse(data));
+      try{
+        const response = await axios.get('https://react-http-d874d-default-rtdb.firebaseio.com/expense.json');
+        if(response.data){
+          const loadedExpense = Object.keys(response.data).map(key=>({
+            id:key,
+            ...response.data[key]
+          }));
+          setExpense(loadedExpense);
+        
+        }
+      }catch(error){
+        console.log(error);
       }
     };
     fetchData();
   },[]);
 
-  const addExpenseHandler = (event) =>{
+  const addExpenseHandler = async (event) =>{
   event.preventDefault();
   const newExpense = {
     amount:+amount,
@@ -29,12 +38,19 @@ const ExpenseTracker = () =>{
     category,
     timestamp:Date.now(),
   };
-  const updatedExpense = [...expense, newExpense]
-  localStorage.setItem("expense", JSON.stringify(updatedExpense));
-  setExpense(updatedExpense);
-  setAmount("");
-  setDescription("");
-  setCategory("Food");  
+  try {
+    const response = await axios.post('https://react-http-d874d-default-rtdb.firebaseio.com/expense.json', newExpense);
+    const updatedExpense = [...expense, {
+      id: response.data.name,
+      ...newExpense
+    }];
+    setExpense(updatedExpense);
+    setAmount("");
+    setDescription("");
+    setCategory("Food");  
+  } catch (error) {
+    console.log(error);
+  } 
   };
  
   const deleteHandler = ()=>{
@@ -52,7 +68,7 @@ const editHandler = (currentExpense)=>{
   setCategory(currentExpense.category);
 };
 
-const submitHandler = (event,expense) =>{
+const submitHandler =async (event,expense) =>{
   event.preventDefault();
   const updatedExpense = expense.map((item)=>{
     if(item.timestamp === editExpense.timestamp){
@@ -65,12 +81,21 @@ const submitHandler = (event,expense) =>{
     }
     return item;
   });
-  localStorage.setItem("expense", JSON.stringify(updatedExpense));
-  setExpense(updatedExpense);
-  setAmount("");
-  setDescription("");
-  setCategory("Food");
-  setEditExpense(null);
+  try{
+     await axios.put(`https://react-http-d874d-default-rtdb.firebaseio.com/expense/${editExpense.id}.json`,{
+
+     amount:+amount,
+     description,
+     category,
+     })
+     setExpense(updatedExpense);
+     setAmount("");
+     setDescription("");
+     setCategory("Food");
+     setEditExpense(null);
+  }catch(error){
+    console.log(error);
+  }
 };
 
   return (
