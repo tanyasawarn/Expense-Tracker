@@ -1,29 +1,51 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import classes from "./expensetracker.module.css";
+
+
 
 const ExpenseTracker = () =>{
   const [expense,setExpense] = useState([]);
+  const [amount, setAmount] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("food");
+
+  useEffect(()=>{
+    const fetchData = async () =>{
+      const data = localStorage.getItem("expense");
+      if(data){
+        setExpense(JSON.parse(data));
+      }
+    };
+    fetchData();
+  },[]);
 
   const addExpenseHandler = (event) =>{
   event.preventDefault();
-  const expense = {
-    id:Math.random().toString(),
-    amount:event.target[0].value,
-    description:event.target[1].value,
-    category:event.target[2].value,
+  const newExpense = {
+    amount:+amount,
+    description,
+    category,
+    timestamp:Date.now(),
   };
-  setExpense((prevState)=>[...prevState,expense]);
+  const updatedExpense = [...expense, newExpense]
+  localStorage.setItem("expense", JSON.stringify(updatedExpense));
+  setExpense(updatedExpense);
+  setAmount("");
+  setDescription("");
+  setCategory("Food");  
+  };
+ 
    
-  };
+
   return (
     <section>
         <form className={classes.form} onSubmit={addExpenseHandler}>
             <label htmlFor="money">Money Spent: $ </label>
-            <input type="number" required/>
+            <input type="number" required value={amount} onChange={(event)=>setAmount(event.target.value)}/>
             <label htmlFor="description">Description </label>
-            <input type="text" required/>
+            <input type="text" required value={description} onChange={(event)=>setDescription(event.target.value)}/>
             <label htmlFor="money">Category </label>
-            <select>
+            <select value={category} onChange={(event) => setCategory(event.target.value)}>
                 <option value="food">Food</option>
                 <option value="travel">Travel</option>
                 <option value="restaurant">Restaurant</option>
@@ -33,7 +55,7 @@ const ExpenseTracker = () =>{
         </form>
         <div key= {expense.id} className={classes.expense}>
         {expense.map((expense) => (
-          <div key={expense.id}>
+          <div key={expense.timestamp}>
             <p>Amount: ${expense.amount}</p>
             <p>Description: {expense.description}</p>
             <p>Category: {expense.category}</p>
