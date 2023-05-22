@@ -1,45 +1,18 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import classes from "./profile.module.css";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
-
+import { ToastContainer, toast } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
+  
 const Profile = () => {
   const [displayName, setDisplayName] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
-  const nameRef = useRef();
+  const idToken = localStorage.getItem('idToken');
+   const nameRef = useRef();
   const photoRef = useRef();
+  const [isProfileUpdated, setIsProfileUpdated] = useState(false);
 
   
   
-
-  useEffect(() => {
-    const fetchProfileData = async () => {
-      const auth = getAuth();
-      onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          const idToken = await user.getIdToken();
-          const response = await fetch(
-            `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=AIzaSyCp3CtTZKkTpTX35hg6q4KXdL6fJXTDCgk`,
-            {
-              method: "POST",
-              body: JSON.stringify({ idToken }),
-              headers: {
-                "Content-Type": "application/json",
-              },
-            }
-          );
-          if (response.ok) {
-            const responseData = await response.json();
-            setDisplayName(responseData.displayName);
-            setPhotoUrl(responseData.photoUrl);
-          } else {
-            console.log("Error fetching profile data:", response.status);
-          }
-        }
-      });
-    };
-
-    fetchProfileData();
-  }, []);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -47,11 +20,13 @@ const Profile = () => {
     const updatedPhoto = photoRef.current.value;
 
     const requestBody = {
-      displayName: enteredName,
-      photoUrl: updatedPhoto,
-      deleteAttribute: [],
-      returnSecureToken: true,
-    };
+  idToken: idToken,
+  displayName: enteredName,
+  photoUrl: updatedPhoto,
+  deleteAttribute: [],
+  returnSecureToken: true,
+};
+
 
     try {
        
@@ -67,11 +42,16 @@ const Profile = () => {
       );
       if (response.ok) {
         const responseData = await response.json();
+        console.log(responseData);
         setDisplayName(responseData.displayName);
         setPhotoUrl(responseData.photoUrl);
-        console.log("Profile updated successfully");
+         setIsProfileUpdated(true);
+
+        toast.success("Profile updated successfully");
+         
       } else {
-        console.log("Error updating profile:");
+        toast.success("Error updating profile:");
+        
       }
     } catch (error) {
       console.log(error);
@@ -84,7 +64,9 @@ const Profile = () => {
 
   return (
     <div>
-      <form onSubmit={handleSubmit} className={classes["form-container"]}>
+    <ToastContainer/>
+       {!isProfileUpdated && (
+        <form onSubmit={handleSubmit} className={classes["form-container"]}>
         <label htmlFor="name">Name:</label>
         <input type="text" id="name" ref={nameRef} defaultValue={displayName} />
         <br />
@@ -93,10 +75,8 @@ const Profile = () => {
         <br />
         <button type="submit">Update</button>
       </form>
-      <div>
-        <h2>{displayName}</h2>
-        <img src={photoUrl} alt="Profile" />
-      </div>
+       )}
+     
     </div>
   );
 };

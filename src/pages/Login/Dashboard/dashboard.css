@@ -1,0 +1,44 @@
+/* Light Theme */
+:root {
+    --primary-color: #007bff;
+    --secondary-color: #6c757d;
+    --background-color: #f8f9fa;
+    --text-color: #333;
+  }
+  
+  body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+  }
+  
+  .navbar {
+    background-color: var(--primary-color);
+    color: #fff;
+  }
+  
+   
+  
+  /* Dark Theme */
+  .dark-theme {
+    --primary-color: #072039;
+    --secondary-color: #0b0f12;
+    --background-color: #212529;
+    --text-color: #c29595;
+  }
+  
+  .dark-theme body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+  }
+  
+  .dark-theme .navbar {
+    background-color: var(--primary-color);
+    color: #fff;
+  }
+  
+  .dark-theme button {
+    background-color: var(--primary-color);
+    color: #fff;
+  }
+  
+  

@@ -1,21 +1,28 @@
-
 import React, { useState, useEffect } from "react";
 import { Navbar } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import Profile from "./Profile/Profile";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { toggleTheme } from "../../store/themerslicer";
 import { setExpense } from "../../store/expenseSlice";
 import ExpenseTracker from "../ExpenseTracker/Tracker";
 import axios from "axios";
+import "./dashboard.css";
 
 const Dashboard = () => {
   const [showForm, setShowForm] = useState(false);
   const [emailVerified, setEmailVerified] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
 
+  const isDarkTheme = useSelector((state) => state.theme.isDarkTheme);
 
   const dispatch = useDispatch();
-  const expenseList = useSelector((state) => state.expenses);
+
+  // const toggleThemeHandler = () => {
+  //   dispatch(toggleTheme());
+  // };
+
+  const themeClass = isDarkTheme ? "dark-theme" : "";
 
   const idToken = localStorage.getItem("idToken");
 
@@ -100,8 +107,7 @@ const Dashboard = () => {
             setIsPremium(false);
           }
         }
-      
-        }catch (error) {
+      } catch (error) {
         console.log(error);
       }
     };
@@ -110,16 +116,26 @@ const Dashboard = () => {
 
   useEffect(() => {
     checkEmailVerificationStatus();
-  }, []);
+  });
 
+  const activatePremiumHandler = () => {
+    setIsPremium(true);
+    dispatch(toggleTheme());
+  };
+
+  
+
+  
   return (
     <>
       <Navbar style={{ marginTop: "1rem", backgroundColor: "teal" }}>
         <b>Welcome To Expense Tracker</b>
+
         {!showForm && (
           <p style={{ marginLeft: "55rem", marginTop: "0rem" }}>
             Your Profile is Incomplete{" "}
             <button onClick={profileCompleteHandler}>Complete Now</button>
+          
           </p>
         )}
         <Link to="/login">
@@ -135,17 +151,22 @@ const Dashboard = () => {
           <button onClick={sendVerificationEmail}>Verify Your Email</button>
         </p>
       )}
-      <ExpenseTracker expenseList={expenseList} />
-      {isPremium && (
-        <p style={{ marginLeft: "2rem", marginTop: "0rem" }}>
-          Expenses exceed 10,000 rupees! Activate Premium Now{" "}
-          <button>Activate Premium</button>
-        </p>
-      )}
+      <ExpenseTracker />
+
+      <Navbar className={themeClass}>
+        {isPremium && (
+          <>
+            <p style={{ marginLeft: "2rem", marginTop: "0rem" }}>
+              Expenses exceed 10,000 rupees! Activate Premium Now{" "}
+              <button onClick={activatePremiumHandler}>Activate Premium</button>
+            </p>
+          </>
+        )}
+      </Navbar>
+
       {showForm && <Profile />}
     </>
   );
 };
 
 export default Dashboard;
-
