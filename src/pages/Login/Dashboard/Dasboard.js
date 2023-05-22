@@ -17,6 +17,8 @@ const Dashboard = () => {
   const isDarkTheme = useSelector((state) => state.theme.isDarkTheme);
 
   const dispatch = useDispatch();
+  const expenses = useSelector((state) => state.expense.expenses);
+
 
   // const toggleThemeHandler = () => {
   //   dispatch(toggleTheme());
@@ -123,6 +125,31 @@ const Dashboard = () => {
     dispatch(toggleTheme());
   };
 
+
+  const downloadExpenseCsv = () =>{
+
+    const csvRows = [
+      "Category,Description,Amount",
+      ...expenses.map((expense)=>
+      `${expense.date},${expense.category},${expense.description},${expense.amount}`
+
+      ),
+    ];
+    const csvContent = csvRows.join("\n");
+    const blob= new Blob ([csvContent],{type:"text/csv; charset=utf-8;"});
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download","expenses.csv");
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+     
+    // Revoke the URL to release the memory
+    URL.revokeObjectURL(url);
+  };
   
 
   
@@ -137,12 +164,15 @@ const Dashboard = () => {
             <button onClick={profileCompleteHandler}>Complete Now</button>
           
           </p>
+          
         )}
         <Link to="/login">
           <button onClick={logoutHandler} style={{ marginLeft: "70rem" }}>
             Logout
           </button>
         </Link>
+        <button style={{margin:"1rem"}} onClick={downloadExpenseCsv}>Download CSV</button>
+      
       </Navbar>
       <hr />
       {!emailVerified && (
